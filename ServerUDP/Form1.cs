@@ -8,9 +8,9 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 
-using TCPLibrary;
+using UDPLibrary;
 
-namespace ServerTCP
+namespace ServerUDP
 {
     public partial class Form1 : Form
     {
@@ -25,18 +25,17 @@ namespace ServerTCP
         {
             try
             {
-                server = new Server(inputIpAddress.Text, (ushort)inputPort.Value);
+                server = new Server((ushort)inputPort.Value);
                 btnStartServer.Enabled = false;
                 server.MessageFunction += GetMessage;
-                server.StartListening();
-                server.WaitForClient();
+                server.WaitForMessage();
             }
             catch (Exception exc)
             {
                 MessageBox.Show(exc.Message, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 return;
             }
-        }
+            }
 
         private void GetMessage(string message)
         {

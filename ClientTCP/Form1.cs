@@ -10,26 +10,38 @@ using System.Windows.Forms;
 
 using TCPLibrary;
 
-namespace ServerTCP
+namespace ClientTCP
 {
     public partial class Form1 : Form
     {
-        private Server server;
+        private Client client;
 
         public Form1()
         {
             InitializeComponent();
         }
 
-        private void btnStartServer_Click(object sender, EventArgs e)
+        private void btnConnect_Click(object sender, EventArgs e)
         {
             try
             {
-                server = new Server(inputIpAddress.Text, (ushort)inputPort.Value);
-                btnStartServer.Enabled = false;
-                server.MessageFunction += GetMessage;
-                server.StartListening();
-                server.WaitForClient();
+                client = new Client(inputIpAddress.Text, (ushort)inputPort.Value);
+                btnConnect.Enabled = false;
+                client.MessageFunction += GetMessage;
+                client.ClientConnect();
+            }
+            catch (Exception exc)
+            {
+                MessageBox.Show(exc.Message, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                return;
+            }
+        }
+
+        private void btnSend_Click(object sender, EventArgs e)
+        {
+            try
+            {
+                client.SendMessage(inputMessage.Text);
             }
             catch (Exception exc)
             {
