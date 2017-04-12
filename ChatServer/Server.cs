@@ -6,7 +6,6 @@ using System.Threading.Tasks;
 
 using System.Net;
 using System.Net.Sockets;
-using ChatLibrary;
 using System.Runtime.Serialization.Formatters.Binary;
 using System.IO;
 
@@ -16,10 +15,11 @@ namespace ChatServer
     {
         public const int BUFFER_SIZE = 4096;
         public event Action<string> UpdateStatus;
-
+        
         private bool isWorking;
         private IPAddress serverAddress;
         private ushort port;
+        private object sendLocker;
 
         private TcpListener server;
         private List<TcpClient> clients;
@@ -35,6 +35,7 @@ namespace ChatServer
         {
             this.serverAddress = address;
             this.port = port;
+            sendLocker = new object();
             server = new TcpListener(serverAddress, port);
             clients = new List<TcpClient>();
             tasks = new List<Task>();
@@ -70,36 +71,63 @@ namespace ChatServer
         }
         private void AddClientTask(TcpClient client)
         {
-            tasks.Add(Task.Factory.StartNew(ClientService, client));
+            Task task = new Task(ClientService(client), client);
+            tasks.Add(task);
+
+            task.Start();
+
+            //tasks.Add(Task.Factory.StartNew(ClientService, client));
             //tasks.Add(new Task(ClientService(client), client));
         }
         private Action<object> ClientService(object client)
         {
-            Action<object> clientFunction = async argClient => 
+            Action<object> clientFunction = /*async*/ argClient =>
             {
                 TcpClient _client = argClient as TcpClient;
                 byte[] receivedBytes = new byte[BUFFER_SIZE];
-                while (_client.Connected)
+                try
                 {
-                    try
+                    using (NetworkStream stream = _client.GetStream())
                     {
-                        using (NetworkStream stream = _client.GetStream())
-                        using (MemoryStream memStream = new MemoryStream())
+                        while (_client.Connected)
                         {
-                            int downloadedBytes = await stream.ReadAsync(receivedBytes, 0, receivedBytes.Length);
-                            memStream.Write(receivedBytes, 0, downloadedBytes);
-                            var serializer = new BinaryFormatter();
-                            Message newMessage = (Message)serializer.Deserialize(memStream);
-                            // Send to all
+                            //int downloadedBytes = await stream.ReadAsync(receivedBytes, 0, receivedBytes.Length);
+                            int downloadedBytes = stream.Read(receivedBytes, 0, receivedBytes.Length);
+                            UpdateStatus?.Invoke($"DEBUG: Pobrałem {downloadedBytes} bajtów");
+                            //for(int i = 0; i < downloadedBytes; i++)
+                            //    UpdateStatus?.Invoke($"{i}   {receivedBytes[i].ToString()}");
+
+                            SendToAllClients(receivedBytes, downloadedBytes);
                         }
                     }
-                    catch (Exception exc)
-                    {
-                        UpdateStatus($"#Something went wrong. {exc.Message}");
-                    }
-                }       
+                }
+                catch (Exception exc)
+                {
+                    UpdateStatus($"#Something went wrong. {exc.Message}");
+                }
             };
             return clientFunction;
+        }
+        private void SendToAllClients(byte[] message, int bytes)
+        {
+            lock (sendLocker)
+            {
+                foreach (TcpClient client in clients)
+                    SendToSingleClient(client, message, bytes);
+            }
+        }
+        private async void SendToSingleClient(TcpClient client, byte[] message, int bytes)
+        {
+            if (!client.Connected)
+                return;
+            using (NetworkStream stream = client.GetStream())
+            {
+                byte[] toSend = new byte[BUFFER_SIZE];
+                message.CopyTo(toSend, 0);
+
+                /*await*/ //stream.Write(messageLength, 0, 4); // int = 4 bajty
+                await stream.WriteAsync(toSend, 0, bytes); //+4
+            }
         }
 
     }
