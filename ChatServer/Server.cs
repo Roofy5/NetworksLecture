@@ -22,7 +22,7 @@ namespace ChatServer
         private object sendLocker;
 
         private TcpListener server;
-        private List<TcpClient> clients;
+        private Dictionary<TcpClient, NetworkStream> clients;
         private List<Task> tasks;
 
         public bool IsWorking
@@ -37,7 +37,7 @@ namespace ChatServer
             this.port = port;
             sendLocker = new object();
             server = new TcpListener(serverAddress, port);
-            clients = new List<TcpClient>();
+            clients = new Dictionary<TcpClient, NetworkStream>();
             tasks = new List<Task>();
         }
 
@@ -58,9 +58,15 @@ namespace ChatServer
         }
         private void AddNewClient(TcpClient client)
         {
-            if (clients.Contains(client))
+            try
+            {
+                clients.Add(client, client.GetStream());
+            }
+            catch (Exception)
+            {
+                //This client is already connected
                 return;
-            clients.Add(client);
+            }
             UpdateStatus?.Invoke($"New client connected. {GetClientsDetails(client)}");
             AddClientTask(client);
         }
@@ -75,35 +81,27 @@ namespace ChatServer
             tasks.Add(task);
 
             task.Start();
-
-            //tasks.Add(Task.Factory.StartNew(ClientService, client));
-            //tasks.Add(new Task(ClientService(client), client));
         }
         private Action<object> ClientService(object client)
         {
-            Action<object> clientFunction = /*async*/ argClient =>
+            Action<object> clientFunction = async argClient =>
             {
                 TcpClient _client = argClient as TcpClient;
+                NetworkStream stream = clients[_client];
                 byte[] receivedBytes = new byte[BUFFER_SIZE];
                 try
                 {
-                    using (NetworkStream stream = _client.GetStream())
+                    while (_client.Connected)
                     {
-                        while (_client.Connected)
-                        {
-                            //int downloadedBytes = await stream.ReadAsync(receivedBytes, 0, receivedBytes.Length);
-                            int downloadedBytes = stream.Read(receivedBytes, 0, receivedBytes.Length);
-                            UpdateStatus?.Invoke($"DEBUG: Pobrałem {downloadedBytes} bajtów");
-                            //for(int i = 0; i < downloadedBytes; i++)
-                            //    UpdateStatus?.Invoke($"{i}   {receivedBytes[i].ToString()}");
-
-                            SendToAllClients(receivedBytes, downloadedBytes);
-                        }
-                    }
+                        int downloadedBytes = await stream.ReadAsync(receivedBytes, 0, receivedBytes.Length);
+                        UpdateStatus?.Invoke($"DEBUG: Pobrałem {downloadedBytes} bajtów");
+                        
+                        SendToAllClients(receivedBytes, downloadedBytes);
+                    }   
                 }
-                catch (Exception exc)
+                catch (Exception)
                 {
-                    UpdateStatus($"#Something went wrong. {exc.Message}");
+                    UpdateStatus($"Client disconnected. {GetClientsDetails(_client)}");
                 }
             };
             return clientFunction;
@@ -112,7 +110,7 @@ namespace ChatServer
         {
             lock (sendLocker)
             {
-                foreach (TcpClient client in clients)
+                foreach (TcpClient client in clients.Keys)
                     SendToSingleClient(client, message, bytes);
             }
         }
@@ -120,14 +118,12 @@ namespace ChatServer
         {
             if (!client.Connected)
                 return;
-            using (NetworkStream stream = client.GetStream())
-            {
-                byte[] toSend = new byte[BUFFER_SIZE];
-                message.CopyTo(toSend, 0);
+            
+            byte[] toSend = new byte[BUFFER_SIZE];
+            message.CopyTo(toSend, 0);
 
-                /*await*/ //stream.Write(messageLength, 0, 4); // int = 4 bajty
-                await stream.WriteAsync(toSend, 0, bytes); //+4
-            }
+            NetworkStream stream = clients[client];
+            await stream.WriteAsync(toSend, 0, bytes);
         }
 
     }

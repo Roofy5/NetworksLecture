@@ -11,7 +11,9 @@ namespace ChatClient
 {
     public class Client
     {
-        public const int BUFFER = 4096;
+        /**
+         * public const int BUFFER = 4096;
+         */
         public event Action<Message> MessageFunction;
 
         private IPAddress serverIp;
@@ -20,6 +22,7 @@ namespace ChatClient
 
         private TcpClient client;
         private Task messageWaiting;
+        private NetworkStream stream;
 
         public Client(string ipAddress, ushort port, string nick)
         {
@@ -69,29 +72,25 @@ namespace ChatClient
             return serverIp.ToString();
         }
 
-        public async void SendMessage(string message)
+        public void SendMessage(string message)
         {
             try
             {
-                using (NetworkStream stream = client.GetStream())
-                using (MemoryStream memStream = new MemoryStream())
+                Message messageToSend = new Message()
                 {
-                    Message messageToSend = new Message()
-                    {
-                        SendTime = DateTime.Now,
-                        Nick = nick,
-                        Text = message
-                    };
-
-                    var serializer = new BinaryFormatter();
+                    SendTime = DateTime.Now,
+                    Nick = nick,
+                    Text = message
+                };
+                var serializer = new BinaryFormatter();
+                serializer.Serialize(stream, messageToSend);
+                /**
+                 * using (MemoryStream memStream = new MemoryStream())
+                {
                     serializer.Serialize(memStream, messageToSend);
-
-                    //serializer.Serialize(stream, messageToSend);
-
                     byte[] dataToSend = memStream.GetBuffer();
-
                     await stream.WriteAsync(dataToSend, 0, (int)memStream.Length);
-                }
+                }*/
             }
             catch (Exception)
             {
@@ -108,33 +107,34 @@ namespace ChatClient
 
         private void WaitForMessage()
         {
+            stream = client.GetStream();
             while (client.Connected)
             {
                 try
                 {
-                    using (NetworkStream stream = client.GetStream())
-                    using (MemoryStream memStream = new MemoryStream())
+                    /**
+                     * using (MemoryStream memStream = new MemoryStream())
                     {
-                        
+                        //First Aproach
                         byte[] receivedBytes = new byte[BUFFER];
 
-                        //byte[] receivedBytes = new byte[BitConverter.ToInt32(dataLength, 0)];
-                        int receivedBytesLength = stream.Read(receivedBytes, 0, receivedBytes.Length);
+                        int receivedBytesLength = await stream.ReadAsync(receivedBytes, 0, receivedBytes.Length);
 
                         memStream.Write(receivedBytes, 0, receivedBytesLength);
                         memStream.Seek(0, SeekOrigin.Begin);
 
+                        // We are sending all the data in one package
                         var serializer = new BinaryFormatter();
                         Message receivedMessage = (Message)serializer.Deserialize(memStream);
-                        
-                        //var serializer = new BinaryFormatter();
-                        //Message receivedMessage = (Message)serializer.Deserialize(stream);
-
-
-                        MessageFunction?.Invoke(receivedMessage);
                     }
+                    */
+                    // Second Aproach
+                    var serializer = new BinaryFormatter();
+                    Message receivedMessage = (Message)serializer.Deserialize(stream);
+
+                    MessageFunction?.Invoke(receivedMessage);
                 }
-                catch (SerializationException exc)
+                catch (Exception exc)
                 {
                     Message mess = new Message()
                     {
@@ -145,6 +145,7 @@ namespace ChatClient
                     MessageFunction?.Invoke(mess);
                 }
             }
+            stream.Close();
         }
     }
 }

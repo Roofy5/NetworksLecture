@@ -42,12 +42,18 @@ namespace ChatClient
             try
             {
                 client.SendMessage(inputMessage.Text);
+                inputMessage.Text = String.Empty;
             }
             catch (Exception exc)
             {
                 MessageBox.Show(exc.Message, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 return;
             }
+        }
+
+        private void inputMessage_Enter(object sender, EventArgs e)
+        {
+            this.AcceptButton = btnSend;
         }
 
         private void GetMessage(ChatLibrary.Message message)
@@ -60,6 +66,9 @@ namespace ChatClient
 
             outputListView.Invoke(new Action(() =>
                 outputListView.Items.Add(item)));
+
+            outputListView.Items[outputListView.Items.Count - 1].EnsureVisible();
         }
+
     }
 }

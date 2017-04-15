@@ -29,20 +29,20 @@
         private void InitializeComponent()
         {
             this.groupBox1 = new System.Windows.Forms.GroupBox();
+            this.inputUserName = new System.Windows.Forms.TextBox();
+            this.label3 = new System.Windows.Forms.Label();
             this.btnConnect = new System.Windows.Forms.Button();
             this.inputPort = new System.Windows.Forms.NumericUpDown();
             this.inputIpAddress = new System.Windows.Forms.TextBox();
             this.label2 = new System.Windows.Forms.Label();
             this.label1 = new System.Windows.Forms.Label();
             this.groupBox2 = new System.Windows.Forms.GroupBox();
-            this.btnSend = new System.Windows.Forms.Button();
-            this.inputMessage = new System.Windows.Forms.TextBox();
             this.outputListView = new System.Windows.Forms.ListView();
             this.Date = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
             this.User = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
             this.Message = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
-            this.label3 = new System.Windows.Forms.Label();
-            this.inputUserName = new System.Windows.Forms.TextBox();
+            this.btnSend = new System.Windows.Forms.Button();
+            this.inputMessage = new System.Windows.Forms.TextBox();
             this.groupBox1.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.inputPort)).BeginInit();
             this.groupBox2.SuspendLayout();
@@ -63,6 +63,22 @@
             this.groupBox1.TabIndex = 5;
             this.groupBox1.TabStop = false;
             this.groupBox1.Text = "Settings";
+            // 
+            // inputUserName
+            // 
+            this.inputUserName.Location = new System.Drawing.Point(70, 48);
+            this.inputUserName.Name = "inputUserName";
+            this.inputUserName.Size = new System.Drawing.Size(91, 20);
+            this.inputUserName.TabIndex = 5;
+            // 
+            // label3
+            // 
+            this.label3.AutoSize = true;
+            this.label3.Location = new System.Drawing.Point(8, 51);
+            this.label3.Name = "label3";
+            this.label3.Size = new System.Drawing.Size(61, 13);
+            this.label3.TabIndex = 4;
+            this.label3.Text = "User name:";
             // 
             // btnConnect
             // 
@@ -113,6 +129,9 @@
             // 
             // groupBox2
             // 
+            this.groupBox2.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
+            | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
             this.groupBox2.Controls.Add(this.outputListView);
             this.groupBox2.Controls.Add(this.btnSend);
             this.groupBox2.Controls.Add(this.inputMessage);
@@ -123,26 +142,11 @@
             this.groupBox2.TabStop = false;
             this.groupBox2.Text = "Chat";
             // 
-            // btnSend
-            // 
-            this.btnSend.Location = new System.Drawing.Point(254, 272);
-            this.btnSend.Name = "btnSend";
-            this.btnSend.Size = new System.Drawing.Size(70, 23);
-            this.btnSend.TabIndex = 1;
-            this.btnSend.Text = "Send";
-            this.btnSend.UseVisualStyleBackColor = true;
-            this.btnSend.Click += new System.EventHandler(this.btnSend_Click);
-            // 
-            // inputMessage
-            // 
-            this.inputMessage.Location = new System.Drawing.Point(10, 274);
-            this.inputMessage.MaxLength = 256;
-            this.inputMessage.Name = "inputMessage";
-            this.inputMessage.Size = new System.Drawing.Size(238, 20);
-            this.inputMessage.TabIndex = 0;
-            // 
             // outputListView
             // 
+            this.outputListView.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
+            | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
             this.outputListView.Columns.AddRange(new System.Windows.Forms.ColumnHeader[] {
             this.Date,
             this.User,
@@ -169,21 +173,27 @@
             this.Message.Text = "Message";
             this.Message.Width = 190;
             // 
-            // label3
+            // btnSend
             // 
-            this.label3.AutoSize = true;
-            this.label3.Location = new System.Drawing.Point(8, 51);
-            this.label3.Name = "label3";
-            this.label3.Size = new System.Drawing.Size(61, 13);
-            this.label3.TabIndex = 4;
-            this.label3.Text = "User name:";
+            this.btnSend.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
+            this.btnSend.Location = new System.Drawing.Point(254, 272);
+            this.btnSend.Name = "btnSend";
+            this.btnSend.Size = new System.Drawing.Size(70, 23);
+            this.btnSend.TabIndex = 1;
+            this.btnSend.Text = "Send";
+            this.btnSend.UseVisualStyleBackColor = true;
+            this.btnSend.Click += new System.EventHandler(this.btnSend_Click);
             // 
-            // inputUserName
+            // inputMessage
             // 
-            this.inputUserName.Location = new System.Drawing.Point(70, 48);
-            this.inputUserName.Name = "inputUserName";
-            this.inputUserName.Size = new System.Drawing.Size(91, 20);
-            this.inputUserName.TabIndex = 5;
+            this.inputMessage.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
+            this.inputMessage.Location = new System.Drawing.Point(10, 274);
+            this.inputMessage.MaxLength = 256;
+            this.inputMessage.Name = "inputMessage";
+            this.inputMessage.Size = new System.Drawing.Size(238, 20);
+            this.inputMessage.TabIndex = 0;
+            this.inputMessage.Enter += new System.EventHandler(this.inputMessage_Enter);
             // 
             // Form1
             // 
@@ -193,7 +203,7 @@
             this.Controls.Add(this.groupBox1);
             this.Controls.Add(this.groupBox2);
             this.Name = "Form1";
-            this.Text = "Form1";
+            this.Text = "Chat Client";
             this.groupBox1.ResumeLayout(false);
             this.groupBox1.PerformLayout();
             ((System.ComponentModel.ISupportInitialize)(this.inputPort)).EndInit();
