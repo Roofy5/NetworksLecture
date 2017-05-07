@@ -46,6 +46,7 @@ namespace HttpExample
             inputAlgorithm.Items.AddRange(algoritms);
             inputAlgorithm.SelectedIndex = 0;
             inputAlgorithm.Enabled = true;
+            btnRefresh.Enabled = false;
         }
     }
 }

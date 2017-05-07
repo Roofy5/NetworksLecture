@@ -77,12 +77,12 @@ namespace ChatServer
         }
         private void AddClientTask(TcpClient client)
         {
-            Task task = new Task(ClientService(client), client);
+            Task task = new Task(ClientService(), client);
             tasks.Add(task);
 
             task.Start();
         }
-        private Action<object> ClientService(object client)
+        private Action<object> ClientService()
         {
             Action<object> clientFunction = async argClient =>
             {

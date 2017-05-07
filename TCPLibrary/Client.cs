@@ -1,6 +1,6 @@
 ﻿using System;
 using System.Net; // IPAddress
-using System.Net.Sockets; // TcpListener
+using System.Net.Sockets; // TcpListener, TcpClient
 
 namespace TCPLibrary
 {
@@ -35,7 +35,7 @@ namespace TCPLibrary
             catch (Exception)
             {
             }
-
+            
             if (client.Connected)
             {
                 string serverIp = GetServerIp();

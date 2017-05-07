@@ -25,15 +25,6 @@ namespace ChatServer
 
         static void Message(string message)
         {
-            if (message.StartsWith("#"))
-            {
-
-            }
-            else
-            {
-
-            }
-
             Console.WriteLine(message);
         }
     }
